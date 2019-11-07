@@ -11,6 +11,10 @@
   {% else %}
     <p>There are currently {{oh_queue.getNumInQueue()}} people in the queue</p>
   {% endif %}
+  <p>The average wait time is {{avg_wait_time}}</p>
+  <p>The average time being helped is {{avg_help_time}}</p>
+  <p>The number of unique students at office hours is {{unique_students}}</p>
+  <p>The total number of people helped is {{total_helped}}</p>
   {% if not oh_queue.isInQueue() %}
     <form method="post" id="add_to_queue" action="{{add_url}}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />

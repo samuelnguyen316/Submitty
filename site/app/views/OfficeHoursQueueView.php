@@ -8,13 +8,19 @@ use app\models\OfficeHoursQueueInstructor;
 
 class OfficeHoursQueueView extends AbstractView {
     public function showQueueStudent($oh_queue) {
+        $queue_stats = $this->core->getQueries()->getQueueStats();
+
         $this->core->getOutput()->addBreadcrumb("Office Hours Queue");
         $this->core->getOutput()->renderTwigOutput("OfficeHoursQueueStudent.twig", [
         'csrf_token' => $this->core->getCsrfToken(),
         'add_url' => $this->core->buildCourseUrl(["office_hours_queue/add"]),
         'remove_url' => $this->core->buildCourseUrl(["office_hours_queue/remove"]),
         'oh_queue' => $oh_queue,
-        'queue_open' => $this->core->getQueries()->isQueueOpen()
+        'queue_open' => $this->core->getQueries()->isQueueOpen(),
+        'avg_wait_time' => $queue_stats['avg_wait_time'],
+        'avg_help_time' => $queue_stats['avg_help_time'],
+        'unique_students' => $queue_stats['unique_students'],
+        'total_helped' => $queue_stats['total_helped']
         ]);
     }
 

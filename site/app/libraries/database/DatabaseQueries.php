@@ -4089,6 +4089,7 @@ AND gc_id IN (
 
     public function addUserToQueue($user_id, $name){
         $name = substr($name, 0, 20);
+        // $name = grapheme_extract( $name, 20, GRAPHEME_EXTR_MAXBYTES);
 
         $in_queue_sc = OfficeHoursQueueInstructor::STATUS_CODE_IN_QUEUE;
         $being_helped_sc = OfficeHoursQueueInstructor::STATUS_CODE_BEING_HELPED;
@@ -4232,5 +4233,16 @@ AND gc_id IN (
         if(count($this->course_db->rows()) == 0){
             $this->course_db->query("INSERT INTO queue_settings (open,code) VALUES (FALSE, '')");
         }
+    }
+
+    public function getQueueStats(){
+        $this->course_db->query("SELECT
+                                SUM(time_helped - time_in)/COUNT(*) AS avg_wait_time,
+                                SUM(time_out - time_helped)/COUNT(*) AS avg_help_time,
+                                count(DISTINCT user_id) AS unique_students,
+                                count(*) AS total_helped
+                                FROM queue WHERE (status = 2) AND time_in > CURRENT_DATE
+        ");
+        return $this->course_db->rows()[0];
     }
 }
