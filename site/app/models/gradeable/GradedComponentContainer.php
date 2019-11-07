@@ -2,7 +2,6 @@
 
 namespace app\models\gradeable;
 
-
 use app\libraries\Core;
 use app\libraries\Utils;
 use app\models\AbstractModel;
@@ -324,10 +323,11 @@ class GradedComponentContainer extends AbstractModel {
         foreach ($this->graded_components as $graded_component) {
             $grader = $graded_component->getGrader();
             $verifier_id = $graded_component->getVerifierId();
-            if($grader->accessFullGrading())
+            if($grader->accessFullGrading()) {
                 $visible_graders[$grader->getId()] = $grader;
-            else if($verifier_id != '')
+            } elseif($verifier_id != '') {
                 $visible_graders[$verifier_id] = $graded_component->getVerifier();
+            }
         }
         return $visible_graders;
     }

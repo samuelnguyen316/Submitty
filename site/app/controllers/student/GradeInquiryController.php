@@ -10,7 +10,6 @@ use app\libraries\response\Response;
 use app\libraries\response\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
-
 class GradeInquiryController extends AbstractController {
     /**
      * @param $gradeable_id
@@ -237,7 +236,7 @@ class GradeInquiryController extends AbstractController {
                     $subject = "New Grade Inquiry: $gradeable_title - $user_id";
                     $body = "A student has submitted a grade inquiry for gradeable, $gradeable_title$component_string.\n\n$user_id writes:\n$content";
                 }
-            } else if ($type == 'reply') {
+            } elseif ($type == 'reply') {
                 if ($this->core->getUser()->accessGrading()) {
                     $subject = "New Grade Inquiry Reply: $gradeable_title - $user_id";
                     $body = "An Instructor/TA/Mentor made a post in a grade inquiry for gradeable, $gradeable_title$component_string.\n\n$user_id writes:\n$content";
@@ -245,8 +244,7 @@ class GradeInquiryController extends AbstractController {
                     $subject = "New Grade Inquiry Reply: $gradeable_title - $user_id";
                     $body = "A student has made a post in a grade inquiry for gradeable, $gradeable_title$component_string.\n\n$user_id writes:\n$content";
                 }
-
-            } else if ($type == 'resolve') {
+            } elseif ($type == 'resolve') {
                 if ($this->core->getUser()->accessGrading()) {
                     $included_post_content = !empty($content) ? "$user_id writes:\n$content" : "";
                     $subject = "Grade Inquiry Resolved: $gradeable_title - $user_id";
@@ -256,7 +254,7 @@ class GradeInquiryController extends AbstractController {
                     $subject = "Grade Inquiry Resolved: $gradeable_title - $user_id";
                     $body = "A student has cancelled a grade inquiry for gradeable, $gradeable_title$component_string.\n\n$included_post_content";
                 }
-            } else if ($type == 'reopen') {
+            } elseif ($type == 'reopen') {
                 if ($this->core->getUser()->accessGrading()) {
                     $included_post_content = !empty($content) ? "$user_id writes:\n$content" : "";
                     $subject = "Grade Inquiry Reopened: $gradeable_title - $user_id";

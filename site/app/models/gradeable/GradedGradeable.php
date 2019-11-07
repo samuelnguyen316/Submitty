@@ -4,7 +4,7 @@ namespace app\models\gradeable;
 
 use app\exceptions\AuthorizationException;
 use app\libraries\Core;
-use \app\models\AbstractModel;
+use app\models\AbstractModel;
 use app\models\User;
 use app\libraries\FileUtils;
 use app\exceptions\FileNotFoundException;
@@ -65,7 +65,6 @@ class GradedGradeable extends AbstractModel {
         $this->submitter = $submitter;
 
         $this->late_day_exceptions = $details['late_day_exceptions'] ?? [];
-
     }
 
     /**
@@ -160,8 +159,9 @@ class GradedGradeable extends AbstractModel {
      */
     public function getGradeInquiryByGcId($gc_id) {
         foreach ($this->regrade_requests as $grade_inquiry) {
-            if ($grade_inquiry->getGcId() == $gc_id)
+            if ($grade_inquiry->getGcId() == $gc_id) {
                 return $grade_inquiry;
+            }
         }
         return null;
     }
@@ -268,11 +268,9 @@ class GradedGradeable extends AbstractModel {
         $newNotebook = $this->getGradeable()->getAutogradingConfig()->getNotebook();
 
         foreach ($newNotebook as $notebookKey => $notebookVal) {
-
             // Handle if the notebook cell type is short_answer
             if(isset($notebookVal['type']) &&
                $notebookVal['type'] == "short_answer") {
-
                 // If no previous submissions set string to default initial_value
                 if($this->getAutoGradedGradeable()->getHighestVersion() == 0)
                 {
@@ -298,10 +296,9 @@ class GradedGradeable extends AbstractModel {
             }
 
             // Handle if notebook cell type is multiple_choice
-            else if(isset($notebookVal['type']) &&
+            elseif(isset($notebookVal['type']) &&
                     $notebookVal['type'] == "multiple_choice")
             {
-
                 // If no previous submissions do nothing
                 if($this->getAutoGradedGradeable()->getHighestVersion() == 0)
                 {
@@ -355,7 +352,8 @@ class GradedGradeable extends AbstractModel {
             $gradable_dir,
             $student_id,
             $version,
-            $filename);
+            $filename
+        );
 
         // Check if the user has permission to access this submission
         $isAuthorized = $this->core->getAccess()->canI('path.read', ["dir" => "submissions", "path" => $complete_file_path]);

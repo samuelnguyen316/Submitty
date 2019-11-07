@@ -206,7 +206,7 @@ class LateController extends AbstractController {
                     $this->core->getQueries()->updateExtensions($_POST['user_id'], $_POST['g_id'], $late_days);
                     $this->core->addSuccessMessage("Extensions have been updated");
                     return Response::JsonOnlyResponse(JsonResponse::getSuccessResponse());
-                } else if($option == 1){
+                } elseif($option == 1){
                     $team_member_ids = explode(", ", $team->getMemberList());
                     for($i = 0; $i < count($team_member_ids); $i++) {
                         $this->core->getQueries()->updateExtensions($team_member_ids[$i], $_POST['g_id'], $late_days);
@@ -220,8 +220,10 @@ class LateController extends AbstractController {
                         $team_members[$team_member_ids[$i]] = $this->core->getQueries()->getUserById($team_member_ids[$i])->getDisplayedFirstName() . " " .
                             $this->core->getQueries()->getUserById($team_member_ids[$i])->getDisplayedLastName();
                     }
-                    $popup_html = $this->core->getOutput()->renderTwigTemplate("admin/users/MoreExtensions.twig",
-                        ['g_id' => $_POST['g_id'], 'member_list' => $team_members]);
+                    $popup_html = $this->core->getOutput()->renderTwigTemplate(
+                        "admin/users/MoreExtensions.twig",
+                        ['g_id' => $_POST['g_id'], 'member_list' => $team_members]
+                    );
                     return Response::JsonOnlyResponse(
                         JsonResponse::getSuccessResponse(['is_team' => true, 'popup' => $popup_html])
                     );
@@ -237,7 +239,7 @@ class LateController extends AbstractController {
     /**
      * @return Response
      */
-    private function getLateDays(){
+    private function getLateDays() {
         $users = $this->core->getQueries()->getUsersWithLateDays();
         $user_table = array();
         foreach($users as $user){

@@ -2,7 +2,6 @@
 
 namespace app\models\gradeable;
 
-
 use app\exceptions\NotImplementedException;
 use app\libraries\Core;
 use app\libraries\Utils;
@@ -92,7 +91,7 @@ class AutogradingConfig extends AbstractModel {
         $this->max_submissions = intval($details['max_submissions'] ?? 0);
         if (isset($details['assignment_message'])) {
             $this->gradeable_message = $details['assignment_message'] ?? '';
-        } else if (isset($details['gradeable_message'])) {
+        } elseif (isset($details['gradeable_message'])) {
             $this->gradeable_message = $details['gradeable_message'] ?? '';
         }
 
@@ -142,7 +141,6 @@ class AutogradingConfig extends AbstractModel {
         // Setup $this->notebook
         $actual_input = array();
         if (isset($details['notebook'])) {
-
             // For each item in the notebook array inside the $details collect data and assign to variables in
             // $this->notebook
             for ($i = 0; $i < count($details['notebook']); $i++) {
@@ -194,7 +192,6 @@ class AutogradingConfig extends AbstractModel {
         // Setup $this->inputs
         for ($i = 0; $i < count($actual_input); $i++) {
             if ($actual_input[$i]['type'] == 'short_answer') {
-
                 // If programming language is set then this is a codebox
                 if(isset($actual_input[$i]['programming_language']))
                 {
@@ -204,9 +201,7 @@ class AutogradingConfig extends AbstractModel {
                 else
                 {
                     $this->inputs[$i] = new SubmissionTextBox($this->core, $actual_input[$i]);
-
                 }
-
             } elseif ($actual_input[$i]['type'] == 'multiple_choice') {
                 $this->inputs[$i] = new SubmissionMultipleChoice($this->core, $actual_input[$i]);
             }
@@ -227,15 +222,14 @@ class AutogradingConfig extends AbstractModel {
         }
     }
 
-    private function getMarkdownData($cell)
-    {
+    private function getMarkdownData($cell) {
         // If markdown_string is set then just return that
         if(isset($cell['markdown_string']))
         {
             return $cell['markdown_string'];
         }
         // Else if markdown_file is set then read the file and return its contents
-        else if(isset($cell['markdown_file']))
+        elseif(isset($cell['markdown_file']))
         {
             // TODO: Implement reading from markdown_file and passing that along
             throw new NotImplementedException("Reading from a markdown_file is not yet implemented.");
@@ -322,10 +316,12 @@ class AutogradingConfig extends AbstractModel {
      * @return bool
      */
     public function anyPoints() {
-        return max($this->total_hidden_non_extra_credit,
-                $this->total_non_hidden_non_extra_credit,
-                $this->total_hidden_extra_credit,
-                $this->total_non_hidden_extra_credit) > 0;
+        return max(
+            $this->total_hidden_non_extra_credit,
+            $this->total_non_hidden_non_extra_credit,
+            $this->total_hidden_extra_credit,
+            $this->total_non_hidden_extra_credit
+        ) > 0;
     }
 
     /**

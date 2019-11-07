@@ -310,7 +310,7 @@ class ReportController extends AbstractController {
                     if ($gg->getGradeable()->isTaGrading() && ($gg->getOrCreateTaGradedGradeable()->hasVersionConflict() || !$gg->isTaGradingComplete())) {
                         // Version conflict or incomplete grading, so zero score
                         $row[$gg->getGradeableId()] = 0;
-                    } else if ($late_days->getLateDayInfoByGradeable($gg->getGradeable())->getStatus() === LateDayInfo::STATUS_BAD) {
+                    } elseif ($late_days->getLateDayInfoByGradeable($gg->getGradeable())->getStatus() === LateDayInfo::STATUS_BAD) {
                         // BAD submission, so zero score
                         $row[$gg->getGradeableId()] = 0;
                     }
@@ -352,7 +352,7 @@ class ReportController extends AbstractController {
      * @param LateDays $ld
      * @return array
      */
-    public function generateGradeSummary(GradedGradeable $gg,User $user, LateDays $ld) {
+    public function generateGradeSummary(GradedGradeable $gg, User $user, LateDays $ld) {
         $g = $gg->getGradeable();
 
         $entry = [
@@ -416,7 +416,7 @@ class ReportController extends AbstractController {
                         //  but to keep the rest of the report generation sane, they can be users if the
                         //  user is not on a team
                         $entry['note'] = 'User is not on a team';
-                    } else if (!$ta_gg->isComplete()) {
+                    } elseif (!$ta_gg->isComplete()) {
                         $entry['note'] = 'This has not been graded yet.';
                     } else {
                         $entry['note'] = 'Score is set to 0 because there are version conflicts.';
@@ -501,16 +501,14 @@ class ReportController extends AbstractController {
     /**
      * @Route("/{_semester}/{_course}/reports/rainbow_grades_customization")
      */
-    public function generateCustomization(){
+    public function generateCustomization() {
         //Build a new model, pull in defaults for the course
         $customization = new RainbowCustomization($this->core);
         $customization->buildCustomization();
 
         if(isset($_POST["json_string"])){
-
             //Handle user input (the form) being submitted
             try {
-
                 $customization->processForm();
 
                 // Finally, send the requester back the information
@@ -524,7 +522,6 @@ class ReportController extends AbstractController {
             }
         }
         else{
-
             $this->core->getOutput()->addInternalJs('rainbow-customization.js');
             $this->core->getOutput()->addInternalCss('rainbow-customization.css');
 
@@ -536,12 +533,11 @@ class ReportController extends AbstractController {
                 "available_buckets" => $customization->getAvailableBuckets(),
                 "used_buckets" => $customization->getUsedBuckets(),
                 'display_benchmarks' => $customization->getDisplayBenchmarks(),
-                'sections_and_labels' => (array)$customization->getSectionsAndLabels(),
+                'sections_and_labels' => (array) $customization->getSectionsAndLabels(),
                 'bucket_percentages' => $customization->getBucketPercentages(),
                 'messages' => $customization->getMessages(),
                 'limited_functionality_mode' => !$this->core->getConfig()->isSubmittyAdminUserInCourse()
             ]);
-
         }
     }
 

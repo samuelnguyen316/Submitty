@@ -96,7 +96,10 @@ class DiffViewer {
                                 "en dash" => ["\xE2\x80\x93", "–", "\\xE2\\x80\\x93"]
                                );
 
-    static function isValidSpecialCharsOption($option) {
+    const EXPECTED = 'expected';
+    const ACTUAL = 'actual';
+
+    public static function isValidSpecialCharsOption($option) {
         return in_array($option, [
             self::SPECIAL_CHARS_ORIGINAL,
             self::SPECIAL_CHARS_UNICODE,
@@ -104,10 +107,7 @@ class DiffViewer {
         ]);
     }
 
-    const EXPECTED = 'expected';
-    const ACTUAL = 'actual';
-
-    static function isValidType($type) {
+    public static function isValidType($type) {
         return in_array($type, [
             self::EXPECTED,
             self::ACTUAL
@@ -141,7 +141,7 @@ class DiffViewer {
      *
      * @throws \Exception
      */
-    public function __construct($actual_file, $expected_file, $diff_file, $image_difference, $id_prepend="id") {
+    public function __construct($actual_file, $expected_file, $diff_file, $image_difference, $id_prepend = "id") {
         $this->id = rtrim($id_prepend, "_") . "_";
         $this->actual_file = $actual_file;
         $this->expected_file = $expected_file;
@@ -174,7 +174,7 @@ class DiffViewer {
         if (!file_exists($actual_file) && $actual_file != "") {
             throw new \Exception("'{$actual_file}' could not be found.");
         }
-        else if ($actual_file != "") {
+        elseif ($actual_file != "") {
             // TODO: fix this hacky way to deal with images
             if (Utils::isImage($actual_file)) {
                 $this->actual_file_image = $actual_file;
@@ -202,7 +202,7 @@ class DiffViewer {
         if (!file_exists($expected_file) && $expected_file != "") {
             throw new \Exception("'{$expected_file}' could not be found.");
         }
-        else if ($expected_file != "") {
+        elseif ($expected_file != "") {
             if (Utils::isImage($expected_file)) {
                 $this->expected_file_image = $expected_file;
             }
@@ -227,7 +227,7 @@ class DiffViewer {
         if (!file_exists($image_difference) && $image_difference != "") {
             throw new \Exception("'{$expected_file}' could not be found.");
         }
-        else if ($image_difference != "") {
+        elseif ($image_difference != "") {
             if (Utils::isImage($image_difference)) {
                 $this->difference_file_image = $image_difference;
             }
@@ -236,7 +236,7 @@ class DiffViewer {
         if (!file_exists($diff_file) && $diff_file != "") {
             throw new \Exception("'{$diff_file}' could not be found.");
         }
-        else if ($diff_file != "") {
+        elseif ($diff_file != "") {
             $diff = FileUtils::readJsonFile($diff_file);
         }
 
@@ -291,7 +291,7 @@ class DiffViewer {
                 if ($act_ins < $exp_ins) {
                     $this->add[self::ACTUAL][($act_final)] = $exp_ins - $act_ins;
                 } // Or into expected?
-                else if ($act_ins > $exp_ins) {
+                elseif ($act_ins > $exp_ins) {
                     $this->add[self::EXPECTED][($exp_final)] = $act_ins - $exp_ins;
                 }
             }
@@ -357,7 +357,6 @@ class DiffViewer {
         else {
             return "";
         }
-
     }
 
     /**
@@ -444,7 +443,7 @@ class DiffViewer {
          * Run through every line, starting a highlight around any group of mismatched lines that exist (whether
          * there's a difference on that line or that the line doesn't exist.
          */
-        $max_digits = strlen((string)count($lines));
+        $max_digits = strlen((string) count($lines));
         for ($i = 0; $i < count($lines); $i++) {
             $j = $i + 1;
             if ($start === null && isset($this->diff[$type][$i])) {
@@ -458,7 +457,7 @@ class DiffViewer {
                 $html .= "\t<div>";
             }
             $html .= "<span class='line_number'>";
-            $digits_at_line = strlen((string)$j);
+            $digits_at_line = strlen((string) $j);
             for ($counter = ($max_digits - $digits_at_line); $counter > 0; $counter--) {
                 $html .= "&nbsp;";
             }
@@ -476,12 +475,12 @@ class DiffViewer {
                     if($option == self::SPECIAL_CHARS_ORIGINAL){
                         $html .= $html_orig;
                         $html .= "<span class='highlight-char'>" . $html_orig_error . "</span>";
-                    } else if($option == self::SPECIAL_CHARS_UNICODE) {
+                    } elseif($option == self::SPECIAL_CHARS_UNICODE) {
                         $html_no_empty = $this->replaceEmptyChar($html_orig, false);
                         $html_no_empty_error = $this->replaceEmptyChar($html_orig_error, false);
                         $html .= $html_no_empty;
                         $html .= "<span class='highlight-char'>" . $html_no_empty_error . "</span>";
-                    } else if($option == self::SPECIAL_CHARS_ESCAPE) {
+                    } elseif($option == self::SPECIAL_CHARS_ESCAPE) {
                         $html_no_empty = $this->replaceEmptyChar($html_orig, true);
                         $html_no_empty_error = $this->replaceEmptyChar($html_orig_error, true);
                         $html .= $html_no_empty;
@@ -503,16 +502,16 @@ class DiffViewer {
                 if (isset($lines[$i])) {
                     if($option == self::SPECIAL_CHARS_ORIGINAL){
                         $html .= htmlentities($lines[$i]);
-                    } else if($option == self::SPECIAL_CHARS_UNICODE){
+                    } elseif($option == self::SPECIAL_CHARS_UNICODE){
                         $html .= $this->replaceEmptyChar(htmlentities($lines[$i]), false);
-                    } else if($option == self::SPECIAL_CHARS_ESCAPE){
+                    } elseif($option == self::SPECIAL_CHARS_ESCAPE){
                         $html .= $this->replaceEmptyChar(htmlentities($lines[$i]), true);
                     }
                 }
             }
             if($option == self::SPECIAL_CHARS_UNICODE) {
                 $html .= '<span class="whitespace">&#9166;</span>';
-            } else if($option == self::SPECIAL_CHARS_ESCAPE) {
+            } elseif($option == self::SPECIAL_CHARS_ESCAPE) {
                 $html .= '<span class="whitespace">\\n</span>';
             }
             $html .= "</span></div>\n";
@@ -538,7 +537,7 @@ class DiffViewer {
         return $html;
     }
 
-    public function getWhiteSpaces(){
+    public function getWhiteSpaces() {
         $return = "";
         foreach($this->white_spaces as $key => $value){
             $return .= "$value" . " = " . "$key" . " ";
@@ -554,7 +553,7 @@ class DiffViewer {
      *
      * @return string HTML after white spaces replaced with visuals
      */
-    private function replaceEmptyChar($html, $with_escape){
+    private function replaceEmptyChar($html, $with_escape) {
         $return = $html;
         if($with_escape){
             foreach(self::SPECIAL_CHARS_LIST as $name => $representations){
@@ -577,11 +576,13 @@ class DiffViewer {
      *
      * This function replaces string $text with string $what in string $which.
      */
-    private function replaceUTF($text, $what, &$which, $description){
+    private function replaceUTF($text, $what, &$which, $description) {
         $count = 0;
         $what = '<span class="whitespace">' . $what . '</span>';
         $which = str_replace($text, $what, $which, $count);
-        if($count > 0) $this->white_spaces[$description] = strip_tags($what);
+        if($count > 0) {
+            $this->white_spaces[$description] = strip_tags($what);
+        }
         return $what;
     }
 

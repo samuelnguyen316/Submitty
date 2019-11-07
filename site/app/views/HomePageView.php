@@ -1,10 +1,9 @@
 <?php
+
 namespace app\views;
 
 use app\authentication\DatabaseAuthentication;
 use app\models\User;
-
-
 
 class HomePageView extends AbstractView {
     /**

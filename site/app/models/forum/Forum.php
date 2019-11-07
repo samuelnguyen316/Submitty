@@ -21,7 +21,7 @@ class Forum extends AbstractModel {
         //$this->forum_db = $forum_db;
     }
 
-    public function publish(array $data, bool $isThread) : bool {
+    public function publish(array $data, bool $isThread): bool {
 
         $pushFunction = null;
 
@@ -46,7 +46,6 @@ class Forum extends AbstractModel {
         //$pushFunction($result);
 
         return true;
-
     }
 
 
@@ -65,7 +64,6 @@ class Forum extends AbstractModel {
 
     public function getEditContent($post_id) {
         if($this->checkPostEditAccess($post_id) && !empty($post_id)) {
-
             //This will return a Post obj also forum queries...
             $post = $this->core->getQueries()->getPost($post_id);
             $output = array();
@@ -106,10 +104,9 @@ class Forum extends AbstractModel {
             $announcement_email = new Email($this->core, $email_data);
             $this->core->getQueries()->createEmail($announcement_email);
         }
-
     }
 
-    private function getThreadContent($thread_id, &$output){
+    private function getThreadContent($thread_id, &$output) {
         $result = $this->core->getQueries()->getThread($thread_id)[0];
         $output['title'] = $result["title"];
         $output['categories_ids'] = $this->core->getQueries()->getCategoriesIdForThread($thread_id);
@@ -117,12 +114,12 @@ class Forum extends AbstractModel {
     }
 
     // Validation of form data
-    private function validateThreadData(array $data, bool $createObject) : array {
+    private function validateThreadData(array $data, bool $createObject): array {
 
         //Validate the post data prior to thread data
         $goodPost = $this->validatePostData($data, false, true);
 
-        if( !$goodPost[0] ||
+        if(!$goodPost[0] ||
             empty($data['title']) || empty($data['status']) ||
             empty($data['announcement']) || empty($data['categories']) ||
             empty($data['email_announcement']) || $data['parent_id'] !== -1 ||
@@ -131,12 +128,11 @@ class Forum extends AbstractModel {
         }
 
         return $createObject ? [true, new Thread($this->core, $data)] : [true, null];
-
     }
 
-    private function validatePostData(array $data, bool $createObject, bool $isThread) : array {
+    private function validatePostData(array $data, bool $createObject, bool $isThread): array {
 
-        if( empty($data['content']) || empty($data['anon']) ||
+        if(empty($data['content']) || empty($data['anon']) ||
             empty($data['thread_id']) || empty($data['parent_id']) ||
             (!$isThread && !$this->core->getQueries()->existsThread($data['thread_id'])) ||
             (!$isThread && !$this->core->getQueries()->existsPost($data['thread_id'], $data['parent_id'])) || (strlen($data['content']) > 5000) ) {
@@ -144,9 +140,5 @@ class Forum extends AbstractModel {
         }
 
         return $createObject ? [true, new Post($this->core, $data)] : [true, null];
-
     }
-
-
-
 }

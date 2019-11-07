@@ -31,8 +31,10 @@ class ExceptionHandler {
     /**
      * This is a static class so it should never be instaniated or copied anywhere
      */
-    private function __construct() { }
-    private function __clone() { }
+    private function __construct() {
+    }
+    private function __clone() {
+    }
 
     /**
      * @param bool $boolean True/False to control whether we log/not log exceptions
@@ -72,12 +74,14 @@ class ExceptionHandler {
         
         $trace_string = array();
         foreach ($exception->getTrace() as $elem => $frame) {
-            $trace_string[] = sprintf( "#%s %s(%s): %s(%s)",
-                             $elem,
-                             isset($frame['file']) ? $frame['file'] : 'unknown file',
-                             isset($frame['line']) ? $frame['line'] : 'unknown line',
-                             (isset($frame['class']))  ? $frame['class'] . $frame['type'] . $frame['function'] : $frame['function'],
-                             static::parseArgs(is_a($exception, '\app\exceptions\AuthenticationException') ? array() : $frame['args']));
+            $trace_string[] = sprintf(
+                "#%s %s(%s): %s(%s)",
+                $elem,
+                isset($frame['file']) ? $frame['file'] : 'unknown file',
+                isset($frame['line']) ? $frame['line'] : 'unknown line',
+                (isset($frame['class']))  ? $frame['class'] . $frame['type'] . $frame['function'] : $frame['function'],
+                static::parseArgs(is_a($exception, '\app\exceptions\AuthenticationException') ? array() : $frame['args'])
+            );
         }
         $trace_string = implode("\n", $trace_string);
 
@@ -125,7 +129,7 @@ class ExceptionHandler {
         if (static::$display_exceptions) {
             return $message;
         }
-        else if ($display_message) {
+        elseif ($display_message) {
             return $exception->getMessage();
         }
         else {

@@ -184,7 +184,6 @@ class GradingOrder extends AbstractModel {
         return $this->getNextSubmitterMatching($submitter, function (Submitter $sub) {
             return $this->getHasSubmission($sub);
         });
-
     }
 
     /**
@@ -435,8 +434,12 @@ class GradingOrder extends AbstractModel {
      * @return GradedGradeable[] All graded gradeables for students, in the correct order
      */
     public function getSortedGradedGradeables() {
-        $iter = $this->core->getQueries()->getGradedGradeables([$this->gradeable],
-            $this->all_user_ids, $this->all_team_ids, [$this->getSectionKey(), 'team_id', 'user_id']);
+        $iter = $this->core->getQueries()->getGradedGradeables(
+            [$this->gradeable],
+            $this->all_user_ids,
+            $this->all_team_ids,
+            [$this->getSectionKey(), 'team_id', 'user_id']
+        );
 
         $gg_idx = [];
         $unsorted = [];
@@ -466,17 +469,17 @@ class GradingOrder extends AbstractModel {
 
         if($sort == 'first' && $direction == 'ASC') {
             $msg = 'First Name Ascending';
-        } else if ($sort == 'first' && $direction == 'DESC') {
+        } elseif ($sort == 'first' && $direction == 'DESC') {
             $msg = 'First Name Descending';
-        } else if ($sort == 'last' && $direction == 'ASC') {
+        } elseif ($sort == 'last' && $direction == 'ASC') {
             $msg = 'Last Name Ascending';
-        } else if ($sort == 'last' && $direction == 'DESC') {
+        } elseif ($sort == 'last' && $direction == 'DESC') {
             $msg = 'Last Name Descending';
-        } else if ($sort == 'id' && $direction == 'ASC') {
+        } elseif ($sort == 'id' && $direction == 'ASC') {
             $msg = 'ID Ascending';
-        } else if ($sort == 'id' && $direction == 'DESC') {
+        } elseif ($sort == 'id' && $direction == 'DESC') {
             $msg = 'ID Descending';
-        } else if ($sort == 'random') {
+        } elseif ($sort == 'random') {
             $msg = 'Randomized';
         } else {
             $msg = false;

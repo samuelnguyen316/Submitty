@@ -2,7 +2,6 @@
 
 namespace app\controllers;
 
-
 use app\libraries\DateUtils;
 use app\libraries\FileUtils;
 use app\libraries\Utils;
@@ -11,7 +10,6 @@ use app\libraries\routers\AccessControl;
 use app\libraries\response\Response;
 use app\libraries\response\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
-
 
 class MiscController extends AbstractController {
 
@@ -34,7 +32,7 @@ class MiscController extends AbstractController {
      * @Route("/{_semester}/{_course}/gradeable/{gradeable_id}/encode_pdf")
      * @return Response
      */
-    public function encodePDF($gradeable_id){
+    public function encodePDF($gradeable_id) {
         $id = $_POST['user_id'] ?? null;
         $file_name = $_POST['filename'] ?? null;
         $file_name = html_entity_decode($file_name);
@@ -82,7 +80,6 @@ class MiscController extends AbstractController {
                 return false;
             }
         } else {
-
             // Check access through Access library
             if (!$this->core->getAccess()->canI("path.read", ["dir" => $dir, "path" => $path])) {
                 $this->core->getOutput()->showError("You do not have access to this file");
@@ -105,7 +102,6 @@ class MiscController extends AbstractController {
                     return false;
                 }
             }
-
         }
         $file_name = basename(rawurldecode(htmlspecialchars_decode($path)));
         $corrected_name = pathinfo($path, PATHINFO_DIRNAME) . "/" .  $file_name;
@@ -157,7 +153,7 @@ class MiscController extends AbstractController {
             elseif (substr($path, '-4') === '.css') {
                 $mime_type = 'text/css';
             }
-            else if (substr($path, '-5') === '.html') {
+            elseif (substr($path, '-5') === '.html') {
                 $mime_type = 'text/html';
             }
         }
@@ -189,9 +185,8 @@ class MiscController extends AbstractController {
 
         if ($dir == 'submissions') {
             //cannot download scanned images for bulk uploads
-            if (strpos(basename($path), "upload_page_" ) !== false &&
+            if (strpos(basename($path), "upload_page_") !== false &&
                 FileUtils::getContentType($path) !== "application/pdf") {
-
                 $this->core->getOutput()->showError("You do not have access to this file");
                 return false;
             }
@@ -245,14 +240,12 @@ class MiscController extends AbstractController {
         // If the request is coming from the submissions page, then the results and results_public folder
         // should not be included, otherwise include them
         if($origin != 'submission') {
-
             if ($this->core->getAccess()->canI("path.read.results", ["gradeable" => $gradeable, "graded_gradeable" => $graded_gradeable, "gradeable_version" => $gradeable_version->getVersion()])) {
                 $folder_names[] = "results";
             }
             if ($this->core->getAccess()->canI("path.read.results_public", ["gradeable" => $gradeable, "graded_gradeable" => $graded_gradeable, "gradeable_version" => $gradeable_version->getVersion()])) {
                 $folder_names[] = "results_public";
             }
-
         }
 
         //No results, no download
@@ -298,14 +291,12 @@ class MiscController extends AbstractController {
                         if($this->core->getUser()->accessGrading()){
                             // Add current file to archive
                             $zip->addFile($filePath, $folder_names[$x] . "/" . $relativePath);
-                        }else if ($gradeable->isScannedExam()
+                        }elseif ($gradeable->isScannedExam()
                                   && FileUtils::getContentType($filePath) === "application/pdf"){
                             //If the user is a student, only get PDFs if this is a bulk upload gradeable
                             // Add current file to archive
                             $zip->addFile($filePath, $folder_names[$x] . "/" . $relativePath);
                         }
-
-
                     }
                 }
             }
@@ -358,8 +349,11 @@ class MiscController extends AbstractController {
         $zip = new \ZipArchive();
         $zip->open($zip_name, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
         foreach ($paths as $path) {
-            $gradeable_path = FileUtils::joinPaths($this->core->getConfig()->getCoursePath(), $path,
-                $gradeable->getId());
+            $gradeable_path = FileUtils::joinPaths(
+                $this->core->getConfig()->getCoursePath(),
+                $path,
+                $gradeable->getId()
+            );
             if($type === "all") {
                 $zip->addEmptyDir($path);
                 if (file_exists($gradeable_path)) {
@@ -391,7 +385,6 @@ class MiscController extends AbstractController {
                     $this->core->addErrorMessage($message);
                     $this->core->redirect($this->core->buildCourseUrl());
                 }
-
             } else {
                 //gets the students that are part of the sections
                 if ($gradeable->isGradeByRegistration()) {
@@ -401,8 +394,10 @@ class MiscController extends AbstractController {
                 }
                 else {
                     $section_key = "rotating_section";
-                    $sections = $this->core->getQueries()->getRotatingSectionsForGradeableAndUser($gradeable->getId(),
-                        $this->core->getUser()->getId());
+                    $sections = $this->core->getQueries()->getRotatingSectionsForGradeableAndUser(
+                        $gradeable->getId(),
+                        $this->core->getUser()->getId()
+                    );
                     $students = $this->core->getQueries()->getUsersByRotatingSections($sections);
                 }
                 $students_array = array();
@@ -455,7 +450,7 @@ class MiscController extends AbstractController {
     /**
      * @Route("/{_semester}/{_course}/gradeable/{gradeable_id}/bulk/progress")
      */
-    public function checkBulkProgress($gradeable_id){
+    public function checkBulkProgress($gradeable_id) {
         $job_path = "/var/local/submitty/daemon_job_queue/";
         $result = [];
         $found = false;
@@ -463,10 +458,11 @@ class MiscController extends AbstractController {
         $complete_count = 0;
         try{
             foreach(scandir($job_path) as $job){
-                if(strpos($job, 'bulk_upload_') !== false)
+                if(strpos($job, 'bulk_upload_') !== false) {
                     $found = true;
-                else
+                } else {
                     continue;
+                }
                 //remove 'bulk_upload_' and '.json' from job file name
                 $result[] = substr($job, 11, -5);
             }
@@ -475,11 +471,13 @@ class MiscController extends AbstractController {
             $sub_dirs = array_filter(glob($split_uploads . '/*'), 'is_dir');
             foreach ($sub_dirs as $dir) {
                 foreach (scandir($dir) as $file) {
-                    if(pathinfo($file)['extension'] !== "pdf")
+                    if(pathinfo($file)['extension'] !== "pdf") {
                         continue;
+                    }
 
-                    if(strpos($file, "_cover"))
+                    if(strpos($file, "_cover")) {
                         $complete_count++;
+                    }
                 }
             }
             $result = ['found' => $found, 'job_data' => $result, 'count' => $complete_count];

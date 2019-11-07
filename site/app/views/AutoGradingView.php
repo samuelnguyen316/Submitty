@@ -70,7 +70,9 @@ class AutoGradingView extends AbstractView {
 
             if ($gradeable->isTaGradeReleased()) {
                 foreach ($version_instance->getTestcases() as $testcase) {
-                    if (!$testcase->canView()) continue;
+                    if (!$testcase->canView()) {
+                        continue;
+                    }
                     if ($testcase->getTestcase()->isHidden()) {
                         $any_visible_hidden = true;
                         break;
@@ -84,7 +86,6 @@ class AutoGradingView extends AbstractView {
         // testcases should only be visible if autograding is complete
         if(!$incomplete_autograding) {
             foreach ($version_instance->getTestcases() as $testcase) {
-
                 if ($testcase->canView()) {
                     $num_visible_testcases++;
                 }
@@ -168,7 +169,7 @@ class AutoGradingView extends AbstractView {
                         "show_popup" => false,
                         "src" => $this->autoGetImageSrc($actual_image),
                     ];
-                } else if ($diff_viewer->hasDisplayActual()) {
+                } elseif ($diff_viewer->hasDisplayActual()) {
                     if($autocheck->isDisplayAsSequenceDiagram()){
                         $check["actual"] = [
                             "type" => "sequence_diagram",
@@ -196,7 +197,7 @@ class AutoGradingView extends AbstractView {
                         "show_popup" => false,
                         "src" => $this->autoGetImageSrc($expected_image)
                     ];
-                } else if ($diff_viewer->hasDisplayExpected()) {
+                } elseif ($diff_viewer->hasDisplayExpected()) {
                     $check["expected"] = [
                         "type" => "text",
                         "title" => $expected_title,
@@ -303,7 +304,7 @@ class AutoGradingView extends AbstractView {
         // Special messages for peer / mentor-only grades
         if ($gradeable->isPeerGrading()) {
             $grader_names = ['Graded by Peer(s)'];
-        } else if (count($grader_names) === 0) {
+        } elseif (count($grader_names) === 0) {
             // Non-peer assignment with only limited access graders
             $grader_names = ['Course Staff'];
         }
@@ -410,7 +411,7 @@ class AutoGradingView extends AbstractView {
         }
 
         // for bulk uploads only show PDFs
-        if ($gradeable->isScannedExam() ){
+        if ($gradeable->isScannedExam()){
             $files = $uploaded_pdfs;
         }else{
             $files = array_merge($files['submissions'], $files['checkout']);

@@ -249,7 +249,7 @@ class Gradeable extends AbstractModel {
             $this->setPrecision($details['precision']);
             $this->setRegradeAllowedInternal($details['regrade_allowed']);
             $this->setGradeInquiryPerComponentAllowed($details['grade_inquiry_per_component_allowed']);
-            $this->setDiscussionBased((boolean)$details['discussion_based']);
+            $this->setDiscussionBased((bool) $details['discussion_based']);
             $this->setDiscussionThreadId($details['discussion_thread_ids']);
         }
 
@@ -417,8 +417,12 @@ class Gradeable extends AbstractModel {
         $course_path = $this->core->getConfig()->getCoursePath();
 
         try {
-            $details = FileUtils::readJsonFile(FileUtils::joinPaths($course_path, 'config', 'build',
-                "build_{$this->id}.json"));
+            $details = FileUtils::readJsonFile(FileUtils::joinPaths(
+                $course_path,
+                'config',
+                'build',
+                "build_{$this->id}.json"
+            ));
 
             // If the file could not be found, the result will be false, so don't
             //  create the config if the file can't be found
@@ -506,7 +510,7 @@ class Gradeable extends AbstractModel {
                 } else {
                     $result = self::date_properties_bare;
                 }
-            } else if ($this->isTaGrading()) {
+            } elseif ($this->isTaGrading()) {
                 $result = self::date_properties_elec_ta;
             } else {
                 $result = self::date_properties_elec_no_ta;
@@ -590,11 +594,17 @@ class Gradeable extends AbstractModel {
         $black_list = $this->getDateValidationSet();
 
         // First coerce in the forward direction, then in the reverse direction
-        return $coerce_dates(array_reverse(self::date_validated_properties), $black_list,
-            $coerce_dates(self::date_validated_properties, $black_list, $dates,
+        return $coerce_dates(
+            array_reverse(self::date_validated_properties),
+            $black_list,
+            $coerce_dates(
+                self::date_validated_properties,
+                $black_list,
+                $dates,
                 function (\DateTime $val, \DateTime $cmp) {
                     return $val < $cmp;
-                }),
+                }
+            ),
             function (\DateTime $val, \DateTime $cmp) {
                 return $val > $cmp;
             }
@@ -1139,7 +1149,7 @@ class Gradeable extends AbstractModel {
         }
 
         $points = floatval($points);
-        $q = (int)($points / $this->precision);
+        $q = (int) ($points / $this->precision);
         $r = fmod($points, $this->precision);
 
         // If the remainder is more than half the precision away from zero, then add one
@@ -1193,7 +1203,8 @@ class Gradeable extends AbstractModel {
                     $this->core->getConfig()->getSemester(),
                     $this->core->getConfig()->getCourse(),
                     'submissions',
-                    $this->getId());
+                    $this->getId()
+                );
                 if (is_dir($submission_path)) {
                     $this->any_submissions = true;
                 }
@@ -1405,7 +1416,8 @@ class Gradeable extends AbstractModel {
         if ($this->split_pdf_files === null) {
             $upload_path = FileUtils::joinPaths(
                 $this->core->getConfig()->getCoursePath(),
-                'uploads', 'split_pdf',
+                'uploads',
+                'split_pdf',
                 $this->id
             );
             $this->split_pdf_files = FileUtils::getAllFiles($upload_path);
@@ -1530,8 +1542,14 @@ class Gradeable extends AbstractModel {
 
             $sections = [];
             foreach ($section_names as $section_name) {
-                $sections[] = new GradingSection($this->core, $this->isGradeByRegistration(), $section_name,
-                    $graders[$section_name] ?? [], $users[$section_name] ?? null, $teams[$section_name] ?? null);
+                $sections[] = new GradingSection(
+                    $this->core,
+                    $this->isGradeByRegistration(),
+                    $section_name,
+                    $graders[$section_name] ?? [],
+                    $users[$section_name] ?? null,
+                    $teams[$section_name] ?? null
+                );
             }
 
             return $sections;
@@ -1636,12 +1654,12 @@ class Gradeable extends AbstractModel {
         // Inherit rotating/registration section from leader if not provided
         if ($registration_section === '') {
             $registration_section = $leader->getRegistrationSection();
-        } else if($registration_section === 'NULL') {
+        } elseif($registration_section === 'NULL') {
             $registration_section = null;
         }
         if ($rotating_section < 0) {
             $rotating_section = $leader->getRotatingSection();
-        } else if ($rotating_section === 0) {
+        } elseif ($rotating_section === 0) {
             $rotating_section = null;
         }
 
@@ -1734,7 +1752,7 @@ class Gradeable extends AbstractModel {
      */
     public function hasOverriddenGrades(Submitter $submitter) {
         $userWithOverriddenGrades = $this->core->getQueries()->getAUserWithOverriddenGrades($this->getId(), $submitter->getId());
-        if($userWithOverriddenGrades === null ){
+        if($userWithOverriddenGrades === null){
             return false;
         }
         return true;

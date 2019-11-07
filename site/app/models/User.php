@@ -132,7 +132,7 @@ class User extends AbstractModel {
      * @param Core  $core
      * @param array $details
      */
-    public function __construct(Core $core, $details=array()) {
+    public function __construct(Core $core, $details = array()) {
         parent::__construct($core);
         if (count($details) == 0) {
             return;
@@ -244,7 +244,7 @@ class User extends AbstractModel {
         return $this->notification_settings; //either receives it or not
     }
 
-    public function getNotificationSetting($type){
+    public function getNotificationSetting($type) {
         return $this->notification_settings[$type];
     }
 
@@ -320,7 +320,7 @@ class User extends AbstractModel {
      * @param mixed $data
      * @return bool
      */
-    static public function validateUserData($field, $data) {
+    public static function validateUserData($field, $data) {
 
         switch($field) {
             case 'user_id':
@@ -336,7 +336,9 @@ class User extends AbstractModel {
                 return preg_match("~^[a-zA-Z'`\-\.\(\) ]{0,30}$~", $data) === 1;
             case 'user_email':
                 // emails are allowed to be the empty string...
-                if ($data === "") return true;
+                if ($data === "") {
+                    return true;
+                }
                 // -- or ---
                 // Check email address for appropriate format. e.g. "user@university.edu", "user@cs.university.edu", etc.
                 return preg_match("~^[^(),:;<>@\\\"\[\]]+@(?!\-)[a-zA-Z0-9\-]+(?<!\-)(\.[a-zA-Z0-9]+)+$~", $data) === 1;
@@ -358,7 +360,7 @@ class User extends AbstractModel {
         }
     }
 
-    static public function constructNotificationSettings($details) {
+    public static function constructNotificationSettings($details) {
         $notification_settings = [];
         $notification_settings['reply_in_post_thread'] = $details['reply_in_post_thread'] ?? false;
         $notification_settings['merge_threads'] = $details['merge_threads'] ?? false;

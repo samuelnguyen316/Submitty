@@ -329,7 +329,7 @@ class Config extends AbstractModel {
             if (empty($secrets_json[$key])) {
                 throw new ConfigException("Missing secret var: {$key}");
             }
-            else if (strlen($secrets_json[$key]) < 32) {
+            elseif (strlen($secrets_json[$key]) < 32) {
                 // enforce a minimum 32 bytes for the secrets
                 throw new ConfigException("Secret {$key} is too weak. It should be at least 32 bytes.");
             }
@@ -441,7 +441,12 @@ class Config extends AbstractModel {
         // grab the name of the submitty_admin user (only if 'verified',
         // that is, password successfully used to grab an API token.
         $users_file = FileUtils::joinPaths(
-            '/', 'usr', 'local', 'submitty', 'config', 'submitty_users.json'
+            '/',
+            'usr',
+            'local',
+            'submitty',
+            'config',
+            'submitty_users.json'
         );
         if(!is_file($users_file)) {
             throw new FileNotFoundException('Unable to locate the submity_users.json file');
@@ -465,8 +470,11 @@ class Config extends AbstractModel {
         }
         $course = $this->getCourse();
         $semester = $this->getSemester();
-        return $this->core->getQueries()->checkIsInstructorInCourse
-          ($submitty_admin_user, $course, $semester);
+        return $this->core->getQueries()->checkIsInstructorInCourse(
+            $submitty_admin_user,
+            $course,
+            $semester
+        );
     }
 
 

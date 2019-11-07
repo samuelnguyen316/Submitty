@@ -12,7 +12,6 @@ use app\libraries\response\WebResponse;
 use app\models\User;
 use app\libraries\routers\AccessControl;
 use Symfony\Component\Routing\Annotation\Route;
-
 //Enable us to throw, catch, and handle exceptions as needed.
 use app\exceptions\ValidationException;
 use app\exceptions\DatabaseException;
@@ -230,7 +229,7 @@ class UsersController extends AbstractController {
     /**
      * @Route("/{_semester}/{_course}/users", methods={"POST"})
      */
-    public function updateUser($type='users') {
+    public function updateUser($type = 'users') {
         $return_url = $this->core->buildCourseUrl([$type]) . '#user-' . $_POST['user_id'];
         $use_database = $this->core->getAuthentication() instanceof DatabaseAuthentication;
         $_POST['user_id'] = trim($_POST['user_id']);
@@ -351,7 +350,6 @@ class UsersController extends AbstractController {
                     AdminGradeableController::enqueueGenerateRepos($semester, $course, $g_id);
                 }
             }
-
         }
         $this->core->redirect($return_url);
     }
@@ -370,7 +368,7 @@ class UsersController extends AbstractController {
             array_push($sections_with_students, $rows['rotating_section']);
         }
         for ($i = 1; $i <= $this->core->getQueries()->getMaxRotatingSection(); $i++) {
-            if ( !in_array($i, $sections_with_students) ) {
+            if (!in_array($i, $sections_with_students)) {
                 array_push($non_null_counts, [
                     "rotating_section" => $i,
                     "count" => 0
@@ -380,8 +378,15 @@ class UsersController extends AbstractController {
 
         $null_counts = $this->core->getQueries()->getCountNullUsersRotatingSections();
         $max_section = $this->core->getQueries()->getMaxRotatingSection();
-        $this->core->getOutput()->renderOutput(array('admin', 'Users'), 'sectionsForm', $students, $reg_sections,
-            $non_null_counts, $null_counts, $max_section);
+        $this->core->getOutput()->renderOutput(
+            array('admin', 'Users'),
+            'sectionsForm',
+            $students,
+            $reg_sections,
+            $non_null_counts,
+            $null_counts,
+            $max_section
+        );
     }
 
     /**
@@ -407,7 +412,7 @@ class UsersController extends AbstractController {
                 $_SESSION['request'] = $_POST;
             }
         }
-        else if (isset($_POST['delete_reg_section']) && $_POST['delete_reg_section'] !== "") {
+        elseif (isset($_POST['delete_reg_section']) && $_POST['delete_reg_section'] !== "") {
             if (User::validateUserData('registration_section', $_POST['delete_reg_section'])) {
                 // DELETE trigger function in master DB will catch integrity violation exceptions (such as FK violations when users/graders are still enrolled in section).
                 // $num_del_sections indicates how many DELETEs were performed.  0 DELETEs means either the section didn't exist or there are users still enrolled.
@@ -450,12 +455,12 @@ class UsersController extends AbstractController {
             $this->core->addErrorMessage("Must select one of the four options for setting up rotating sections");
             $this->core->redirect($return_url);
         }
-        else if ($_POST['sort_type'] === "drop_null") {
+        elseif ($_POST['sort_type'] === "drop_null") {
             $this->core->getQueries()->setNonRegisteredUsersRotatingSectionNull();
             $this->core->addSuccessMessage("Non registered students removed from rotating sections");
             $this->core->redirect($return_url);
         }
-        else if ($_POST['sort_type'] === "drop_all") {
+        elseif ($_POST['sort_type'] === "drop_all") {
             $this->core->getQueries()->setAllUsersRotatingSectionNull();
             $this->core->getQueries()->setAllTeamsRotatingSectionNull();
             $this->core->addSuccessMessage("All students removed from rotating sections");
@@ -499,7 +504,7 @@ class UsersController extends AbstractController {
             }
             //remove people who should not be added to rotating sections
             for ($j = 0; $j < count($users_with_reg_section);) {
-                for ($i = 0;$i < count($exclude_sections);++$i) {
+                for ($i = 0; $i < count($exclude_sections); ++$i) {
                     if ($users_with_reg_section[$j]->getRegistrationSection() == $exclude_sections[$i]) {
                         array_splice($users_with_reg_section, $j, 1);
                         $j--;
@@ -507,7 +512,6 @@ class UsersController extends AbstractController {
                     }
                 }
                 ++$j;
-
             }
             for ($i = 0; $i < count($users);) {
                 $found_in = false;
@@ -558,7 +562,7 @@ class UsersController extends AbstractController {
             if ($max_section === null) {
                 $this->core->addErrorMessage("No rotating sections have been added to the system, cannot use fewest");
             }
-            else if ($max_section != $section_count) {
+            elseif ($max_section != $section_count) {
                 $this->core->addErrorMessage("Cannot use a different number of sections when setting up via fewest");
                 $this->core->redirect($return_url);
             }
@@ -675,10 +679,10 @@ class UsersController extends AbstractController {
                 if ($output === null) {
                     $this->core->addErrorMessage("Error parsing JSON response: " . json_last_error_msg());
                     $this->core->redirect($return_url);
-                } else if ($output['error'] === true) {
+                } elseif ($output['error'] === true) {
                     $this->core->addErrorMessage("Error parsing xlsx to csv: " . $output['error_message']);
                     $this->core->redirect($return_url);
-                } else if ($output['success'] !== true) {
+                } elseif ($output['success'] !== true) {
                     $this->core->addErrorMessage("Error on response on parsing xlsx: " . curl_error($ch));
                     $this->core->redirect($return_url);
                 }
@@ -688,8 +692,7 @@ class UsersController extends AbstractController {
                 $this->core->addErrorMessage("Did not properly recieve spreadsheet. Contact your sysadmin.");
                 $this->core->redirect($return_url);
             }
-
-        } else if ($content_type === 'text/csv' && $mime_type === 'text/plain') {
+        } elseif ($content_type === 'text/csv' && $mime_type === 'text/plain') {
             $csv_file = $tmp_name;
         } else {
             $this->core->addErrorMessage("Must upload xlsx or csv");
@@ -784,7 +787,7 @@ class UsersController extends AbstractController {
                 case "classlist":
                     return $user->getRegistrationSection();
                 case "graderlist":
-                    return (string)$user->getGroup();
+                    return (string) $user->getGroup();
                 default:
                     throw new ValidationException("Unknown classlist", array($list_type, '$get_user_registration_or_group_function'));
             }
@@ -891,7 +894,7 @@ class UsersController extends AbstractController {
                     // Preferred first and last name must be alpha characters, white-space, or certain punctuation.
                     // Automatically validate if not set (this field is optional).
                 case !isset($vals[$pref_firstname_idx]) || User::validateUserData('user_preferred_firstname', $vals[$pref_firstname_idx]):
-                case !isset($vals[$pref_lastname_idx]) || User::validateUserData('user_preferred_lastname', $vals[$pref_lastname_idx] ):
+                case !isset($vals[$pref_lastname_idx]) || User::validateUserData('user_preferred_lastname', $vals[$pref_lastname_idx]):
                     // Validation failed somewhere.  Record which row failed.
                     // $row_num is zero based.  ($row_num+1) will better match spreadsheet labeling.
                     $bad_rows[] = ($row_num + 1);
