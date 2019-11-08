@@ -196,7 +196,7 @@ ALTER TABLE ONLY courses_registration_sections
     ADD CONSTRAINT courses_registration_sections_pkey PRIMARY KEY (semester, course, registration_section_id);
 
 ALTER TABLE ONLY courses
-    ADD CONSTRAINT courses_fkey FOREIGN KEY (semester) REFERENCES terms (term_id) ON UPDATE CASACADE;
+    ADD CONSTRAINT courses_fkey FOREIGN KEY (semester) REFERENCES terms (term_id) ON UPDATE CASCADE;
 
 ALTER TABLE ONLY mapped_courses
     ADD CONSTRAINT mapped_courses_fkey FOREIGN KEY (semester, mapped_course) REFERENCES courses(semester, course) ON UPDATE CASCADE;
