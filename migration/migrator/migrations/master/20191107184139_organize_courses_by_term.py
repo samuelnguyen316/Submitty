@@ -37,7 +37,8 @@ def up(config, database):
     # END function enter_and_validate_date()
 
     # Create terms table
-    database.execute("""
+    try:
+        database.execute("""
 CREATE TABLE IF NOT EXISTS terms (
     term_id character varying(255) PRIMARY KEY,
     name character varying(255) NOT NULL,
@@ -45,6 +46,8 @@ CREATE TABLE IF NOT EXISTS terms (
     end_date date NOT NULL,
     CONSTRAINT terms_check CHECK (end_date > start_date)
 );""")
+    except Exception as e:
+        raise SystemExit("Error creating terms table.\n" + str(e))
 
     # Retrieve DISTINCT set of term codes from courses table.
     # These codes need to be INSERTed before creating the FK referencing terms table.
@@ -62,7 +65,6 @@ CREATE TABLE IF NOT EXISTS terms (
     #   b. suggest that fXX = 09/01/XX to 12/23/XX.
     #   c. suggest that uXX = 06/01/XX to 08/31/XX.
     #   d. Do not suggest anything if code is not 'f', 's', or 'u' + "XX".
-
     for code in term_codes:
         if re.fullmatch("^[fsu]\d{2}$", code):
             if code[0:1] == "f":
@@ -102,7 +104,7 @@ CREATE TABLE IF NOT EXISTS terms (
     try:
         database.execute("ALTER TABLE ONLY courses ADD CONSTRAINT courses_fkey FOREIGN KEY (semester) REFERENCES terms (term_id) ON UPDATE CASACADE;")
     except Exception as e:
-        raise SystemExit("Error creating FK: courses(semester) references terms(term_id)\n" + str(e))
+        raise SystemExit("Error creating FK for courses(semester) references terms(term_id)\n" + str(e))
 # END function up()
 
 def down(config, database):
