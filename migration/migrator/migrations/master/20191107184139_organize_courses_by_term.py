@@ -47,7 +47,9 @@ CREATE TABLE IF NOT EXISTS terms (
     CONSTRAINT terms_check CHECK (end_date > start_date)
 );""")
     except Exception as e:
-        raise SystemExit("Error creating terms table.\n" + str(e))
+        print("Error creating terms table.\n" + str(e))
+        database.rollback()
+        return None
 
     # Retrieve DISTINCT set of term codes from courses table.
     # These codes need to be INSERTed before creating the FK referencing terms table.
@@ -65,6 +67,7 @@ CREATE TABLE IF NOT EXISTS terms (
     #   b. suggest that fXX = 09/01/XX to 12/23/XX.
     #   c. suggest that uXX = 06/01/XX to 08/31/XX.
     #   d. Do not suggest anything if code is not 'f', 's', or 'u' + "XX".
+    db_values = []
     for code in term_codes:
         if re.fullmatch("^[fsu]\d{2}$", code):
             if code[0:1] == "f":
@@ -94,17 +97,25 @@ CREATE TABLE IF NOT EXISTS terms (
         start_date = enter_and_validate_date(suggested_start_date, msg_start_date)
         end_date = enter_and_validate_date(suggested_end_date, msg_end_date)
 
-        # INSERT term codes into new terms table.
-        try:
-            database.execute("INSERT INTO terms (term_id, name, start_date, end_date) VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING;", (code, name, start_date, end_date))
-        except Exception as e:
-            raise SystemExit("Error INSERTing values for term '{code}'.\n" + str(e))
+        # Add term_code, name, start/end dates to list that will be transacted to DB
+        db_values.append((code, name, start_date, end_date))
+
+    # INSERT term codes into new terms table as a single transaction.
+    try:
+        for values in db_values:
+            database.execute("INSERT INTO terms (term_id, name, start_date, end_date) VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING;", values)
+    except Exception as e:
+        print("Error INSERTing values into terms table.\n" + str(e))
+        database.rollback()
+        return None
 
     # Create FK, courses table (semester) references terms table (term_id)
     try:
         database.execute("ALTER TABLE ONLY courses ADD CONSTRAINT courses_fkey FOREIGN KEY (semester) REFERENCES terms (term_id) ON UPDATE CASACADE;")
     except Exception as e:
-        raise SystemExit("Error creating FK for courses(semester) references terms(term_id)\n" + str(e))
+        Print("Error creating FK for courses(semester) references terms(term_id)\n" + str(e))
+        database.rollback()
+        return None
 # END function up()
 
 def down(config, database):
