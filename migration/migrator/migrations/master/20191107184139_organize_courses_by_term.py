@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS terms (
     # Retrieve DISTINCT set of term codes from courses table.
     # These codes need to be INSERTed before creating the FK referencing terms table.
     term_codes = database.execute("SELECT DISTINCT semester FROM courses ORDER BY semester ASC;")
-    
+
     # We need information for each term code that already exists.
     # 1. ask sysadmin for name for each term.
     #   a. suggest that sXX = "Spring 20XX".
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS terms (
     try:
         database.execute("ALTER TABLE ONLY courses ADD CONSTRAINT courses_fkey FOREIGN KEY (semester) REFERENCES terms (term_id) ON UPDATE CASACADE;")
     except Exception as e:
-        Print("Error creating FK for courses(semester) references terms(term_id)\n" + str(e))
+        print("Error creating FK for courses(semester) references terms(term_id)\n" + str(e))
         database.rollback()
         return None
 # END function up()
