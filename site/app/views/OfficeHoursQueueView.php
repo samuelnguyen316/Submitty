@@ -51,6 +51,9 @@ class OfficeHoursQueueView extends AbstractView {
     }
 
     private function intervalToString($interval){
+        if(is_null($interval)){
+            return "Unknown";
+        }
         list($time, $ms) = preg_split("/\./", $interval);
         list($hour, $min, $sec) = preg_split("/:/", $time);
         return $hour."h ".$min."m ".$sec."s ";
