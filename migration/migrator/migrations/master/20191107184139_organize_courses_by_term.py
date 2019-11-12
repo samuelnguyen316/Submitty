@@ -53,9 +53,8 @@ CREATE TABLE IF NOT EXISTS terms (
 
     # Retrieve DISTINCT set of term codes from courses table.
     # These codes need to be INSERTed before creating the FK referencing terms table.
-    database.execute("SELECT DISTINCT semester FROM courses ORDER BY semester ASC;")
-    term_codes = database.fetchall()
-
+    term_codes = database.execute("SELECT DISTINCT semester FROM courses ORDER BY semester ASC;")
+    
     # We need information for each term code that already exists.
     # 1. ask sysadmin for name for each term.
     #   a. suggest that sXX = "Spring 20XX".
