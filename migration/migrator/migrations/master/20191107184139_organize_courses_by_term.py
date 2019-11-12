@@ -36,6 +36,9 @@ def up(config, database):
                 print(f"Invalid date: '{date}'\n")
     # END function enter_and_validate_date()
 
+    # Begin
+    transaction = database.begin()
+
     # Create terms table
     try:
         database.execute("""
@@ -48,7 +51,7 @@ CREATE TABLE IF NOT EXISTS terms (
 );""")
     except Exception as e:
         print("Error creating terms table.\n" + str(e))
-        database.rollback()
+        transaction.rollback()
         return None
 
     # Retrieve DISTINCT set of term codes from courses table.
@@ -105,16 +108,18 @@ CREATE TABLE IF NOT EXISTS terms (
             database.execute("INSERT INTO terms (term_id, name, start_date, end_date) VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING;", values)
     except Exception as e:
         print("Error INSERTing values into terms table.\n" + str(e))
-        database.rollback()
+        transaction.rollback()
         return None
 
     # Create FK, courses table (semester) references terms table (term_id)
     try:
-        database.execute("ALTER TABLE ONLY courses ADD CONSTRAINT courses_fkey FOREIGN KEY (semester) REFERENCES terms (term_id) ON UPDATE CASACADE;")
+        database.execute("ALTER TABLE ONLY courses ADD CONSTRAINT courses_fkey FOREIGN KEY (semester) REFERENCES terms (term_id) ON UPDATE CASCADE;")
     except Exception as e:
         print("Error creating FK for courses(semester) references terms(term_id)\n" + str(e))
-        database.rollback()
+        transaction.rollback()
         return None
+
+    transaction.commit()
 # END function up()
 
 def down(config, database):
