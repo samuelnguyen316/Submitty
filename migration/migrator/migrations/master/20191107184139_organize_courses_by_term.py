@@ -2,7 +2,6 @@
 
 import re
 from datetime import datetime
-from pprint import pprint
 
 def up(config, database):
     """
@@ -13,6 +12,7 @@ def up(config, database):
     :param database: Object for interacting with given database for environment
     :type database: migrator.db.Database
     """
+
     def enter_and_validate_date(suggested_date, msg):
         """
         Validate user entered date string.
@@ -36,8 +36,8 @@ def up(config, database):
                 print(f"Invalid date: '{date}'\n")
     # END function enter_and_validate_date()
 
-    # Begin
-    transaction = database.begin()
+    # There is a fair bit to do, so we will begin a transaction that can be ROLLBACKed should something go wrong.
+    database.execute("BEGIN;")
 
     # Create terms table
     try:
@@ -49,16 +49,20 @@ CREATE TABLE IF NOT EXISTS terms (
     end_date date NOT NULL,
     CONSTRAINT terms_check CHECK (end_date > start_date)
 );""")
+        database.execute("ALTER TABLE ONLY terms OWNER TO submitty_dbuser;")
     except Exception as e:
-        print("Error creating terms table.\n" + str(e))
-        transaction.rollback()
-        return None
+        database.execute("ROLLBACK;")
+        raise SystemExit("Error creating terms table.\n" + str(e))
 
     # Retrieve DISTINCT set of term codes from courses table.
     # These codes need to be INSERTed before creating the FK referencing terms table.
     term_codes = database.execute("SELECT DISTINCT semester FROM courses ORDER BY semester ASC;")
 
-    # We need information for each term code that already exists.
+    # We need information about each term code to INSERT into the terms table.
+    # Init list of information that will be INSERTed into terms table.
+    terms_table_values = []
+
+    # Get information about each term code.
     # 1. ask sysadmin for name for each term.
     #   a. suggest that sXX = "Spring 20XX".
     #   b. suggest that fXX = "Fall 20XX".
@@ -69,21 +73,24 @@ CREATE TABLE IF NOT EXISTS terms (
     #   b. suggest that fXX = 09/01/XX to 12/23/XX.
     #   c. suggest that uXX = 06/01/XX to 08/31/XX.
     #   d. Do not suggest anything if code is not 'f', 's', or 'u' + "XX".
-    db_values = []
     for code in term_codes:
+        # Get raw string from SELECT query result (semester column)
+        code = code['semester']
+
+        # if term code is style used at RPI (e.g. 'f19' = 'Fall 2019')...
         if re.fullmatch("^[fsu]\d{2}$", code):
             if code[0:1] == "f":
-                suggested_name = "Fall 20" + code[1:3]
-                suggested_start_date = "09/01/20" + code[1:3]
-                suggested_end_date = "12/23/20" + code[1:3]
+                suggested_name = "[Fall 20" + code[1:3] + "]"
+                suggested_start_date = "[09/01/20" + code[1:3] + "]"
+                suggested_end_date = "[12/23/20" + code[1:3] + "]"
             elif code[0:1] == "s":
-                suggested_name = "Spring 20" + code[1:3]
-                suggested_start_date = "01/02/20" + code[1:3]
-                suggested_end_date = "05/30/20" + code[1:3]
+                suggested_name = "[Spring 20" + code[1:3] + "]"
+                suggested_start_date = "[01/02/20" + code[1:3] + "]"
+                suggested_end_date = "[05/30/20" + code[1:3] + "]"
             else:
-                suggested_name = "Summer 20" + code[1:3]
-                suggested_start_date = "06/01/20" + code[1:3]
-                suggested_end_date = "08/31/20" + code[1:3]
+                suggested_name = "[Summer 20" + code[1:3] + "]"
+                suggested_start_date = "[06/01/20" + code[1:3] + "]"
+                suggested_end_date = "[08/31/20" + code[1:3] + "]"
         else:
             suggested_name = ""
             suggested_start_date = ""
@@ -100,26 +107,25 @@ CREATE TABLE IF NOT EXISTS terms (
         end_date = enter_and_validate_date(suggested_end_date, msg_end_date)
 
         # Add term_code, name, start/end dates to list that will be transacted to DB
-        db_values.append((code, name, start_date, end_date))
+        terms_table_values.append((code, name, start_date, end_date))
 
-    # INSERT term codes into new terms table as a single transaction.
+    # INSERT term codes into new terms table.
     try:
-        for values in db_values:
-            database.execute("INSERT INTO terms (term_id, name, start_date, end_date) VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING;", values)
+        database.execute("LOCK TABLE terms IN ACCESS EXCLUSIVE MODE;")
+        for values in terms_table_values:
+            database.execute(f"INSERT INTO terms (term_id, name, start_date, end_date) VALUES ('{values[0]}', '{values[1]}', '{values[2]}', '{values[3]}') ON CONFLICT DO NOTHING;")
     except Exception as e:
-        print("Error INSERTing values into terms table.\n" + str(e))
-        transaction.rollback()
-        return None
+        database.execute("ROLLBACK;")
+        raise SystemExit("Error INSERTing values into terms table.\n" + str(e))
 
     # Create FK, courses table (semester) references terms table (term_id)
     try:
         database.execute("ALTER TABLE ONLY courses ADD CONSTRAINT courses_fkey FOREIGN KEY (semester) REFERENCES terms (term_id) ON UPDATE CASCADE;")
     except Exception as e:
-        print("Error creating FK for courses(semester) references terms(term_id)\n" + str(e))
-        transaction.rollback()
-        return None
+        database.execute("ROLLBACK;")
+        raise SystemExit("Error creating FK for courses(semester) references terms(term_id)\n" + str(e))
 
-    transaction.commit()
+    database.execute("COMMIT;")
 # END function up()
 
 def down(config, database):
