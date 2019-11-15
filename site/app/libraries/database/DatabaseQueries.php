@@ -2408,20 +2408,29 @@ ORDER BY gt.{$section_key}", $params);
     /**
      * Retrieves all unarchived courses (and details) that are accessible by $user_id
      *
-     * (u.user_id=? AND c.status=1) checks if a course is active
-     * An active course may be accessed by all users
+     * (u.user_id=? AND c.status=1) checks if a course is active.
+     * An active course may be accessed by all users.
+     *
+     * Due to almost all common code, getArchivedCoursesById() has been
+     * condensed into this function.  Set param $unarchived to false to
+     * retrieve archived courses.
      *
      * @param string $user_id
-     * @param string $submitty_path
+     * @param string $unarchived
      * @return array - unarchived courses (and their details) accessible by $user_id
      */
-    public function getUnarchivedCoursesById($user_id) {
+    public function getUnarchivedCoursesById($user_id, $unarchived = true) {
+        $course_status = ($unarchived) ?
+            "WHERE u.user_id=? AND c.status=1" :
+            "WHERE u.user_id=? AND c.status=2 AND u.user_group=1";
+
         $this->submitty_db->query("
-SELECT u.semester, u.course
+SELECT t.name, u.semester, u.course
 FROM courses_users u
 INNER JOIN courses c ON u.course=c.course AND u.semester=c.semester
-WHERE u.user_id=? AND c.status=1
-ORDER BY u.user_group ASC,
+INNER JOIN terms t ON u.semester=t.term_id
+{$course_status}
+ORDER BY t.end_date DESC, u.user_group ASC,
          CASE WHEN SUBSTRING(u.semester, 2, 2) ~ '\\d+' THEN SUBSTRING(u.semester, 2, 2)::INT
               ELSE 0
          END DESC,
@@ -2435,7 +2444,7 @@ ORDER BY u.user_group ASC,
         foreach ($this->submitty_db->rows() as $row) {
             $course = new Course($this->core, $row);
             $course->loadDisplayName();
-            $return[] = $course;
+            $return[$row['name']][] = $course;
         }
         return $return;
     }
@@ -2443,37 +2452,19 @@ ORDER BY u.user_group ASC,
     /**
      * Retrieves all archived courses (and details) that are accessible by $user_id
      *
-     * (u.user_id=? AND u.user_group=1) checks if $user_id is an instructor
-     * Instructors may access all of their courses
-     * Inactive courses may only be accessed by the instructor
+     * (WHERE u.user_id=? AND c.status=2 AND u.user_group=1) checks if $user_id
+     * is an instructor and course is inactive.  Instructors may access all of
+     * their courses.  Inactive courses may only be accessed by the instructor.
      *
+     * Due to almost all common code, this function has been condensed into
+     * getUnarchivedCoursesById().
+     *
+     * @see self::getUnarchivesCoursesById()
      * @param string $user_id
-     * @param string $submitty_path
      * @return array - archived courses (and their details) accessible by $user_id
      */
     public function getArchivedCoursesById($user_id) {
-        $this->submitty_db->query("
-SELECT u.semester, u.course
-FROM courses_users u
-INNER JOIN courses c ON u.course=c.course AND u.semester=c.semester
-WHERE u.user_id=? AND c.status=2 AND u.user_group=1
-ORDER BY u.user_group ASC,
-         CASE WHEN SUBSTRING(u.semester, 2, 2) ~ '\\d+' THEN SUBSTRING(u.semester, 2, 2)::INT
-              ELSE 0
-         END DESC,
-         CASE WHEN SUBSTRING(u.semester, 1, 1) = 's' THEN 2
-              WHEN SUBSTRING(u.semester, 1, 1) = 'u' THEN 3
-              WHEN SUBSTRING(u.semester, 1, 1) = 'f' THEN 4
-              ELSE 1
-         END DESC,
-         u.course ASC", array($user_id));
-        $return = array();
-        foreach ($this->submitty_db->rows() as $row) {
-            $course = new Course($this->core, $row);
-            $course->loadDisplayName();
-            $return[] = $course;
-        }
-        return $return;
+        return self::getUnarchivedCoursesById($user_id, false);
     }
 
     public function getCourseStatus($semester, $course) {

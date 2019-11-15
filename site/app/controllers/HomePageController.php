@@ -95,21 +95,25 @@ class HomePageController extends AbstractController {
 
         // Filter out any courses a student has dropped so they do not appear on the homepage.
         // Do not filter courses for non-students.
-
-        $unarchived_courses = array_filter($unarchived_courses, function (Course $course) use ($user_id, $as_instructor) {
-            return $as_instructor ?
-                $this->core->getQueries()->checkIsInstructorInCourse($user_id, $course->getTitle(), $course->getSemester())
-                :
-                $this->core->getQueries()->checkStudentActiveInCourse($user_id, $course->getTitle(), $course->getSemester());
+        array_walk($unarchived_courses, function($courses) use ($user_id, $as_instructor) {
+            $courses = array_filter($courses, function(Course $course) use ($user_id, $as_instructor) {
+                return $as_instructor ?
+                    $this->core->getQueries()->checkIsInstructorInCourse($user_id, $course->getTitle(), $course->getSemester())
+                    :
+                    $this->core->getQueries()->checkStudentActiveInCourse($user_id, $course->getTitle(), $course->getSemester());
+            });
         });
 
-        $archived_courses = array_filter($archived_courses, function (Course $course) use ($user_id, $as_instructor) {
-            return $as_instructor ?
-                $this->core->getQueries()->checkIsInstructorInCourse($user_id, $course->getTitle(), $course->getSemester())
-                :
-                $this->core->getQueries()->checkStudentActiveInCourse($user_id, $course->getTitle(), $course->getSemester());
+        array_walk($archived_courses, function($courses) use ($user_id, $as_instructor) {
+            $courses = array_filter($courses, function(Course $course) use ($user_id, $as_instructor) {
+                return $as_instructor ?
+                    $this->core->getQueries()->checkIsInstructorInCourse($user_id, $course->getTitle(), $course->getSemester())
+                    :
+                    $this->core->getQueries()->checkStudentActiveInCourse($user_id, $course->getTitle(), $course->getSemester());
+            });
         });
 
+        // To Do: Insert term name into (un)archived courses array hierarchy.
         return Response::JsonOnlyResponse(
             JsonResponse::getSuccessResponse([
                 "unarchived_courses" => array_map(
