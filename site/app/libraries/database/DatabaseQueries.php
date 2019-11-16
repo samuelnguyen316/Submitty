@@ -2406,21 +2406,22 @@ ORDER BY gt.{$section_key}", $params);
     }
 
     /**
-     * Retrieves all unarchived courses (and details) that are accessible by $user_id
+     * Retrieves all archived or unarchived courses (and details) that are accessible by $user_id
      *
-     * (u.user_id=? AND c.status=1) checks if a course is active.
-     * An active course may be accessed by all users.
-     *
-     * Due to almost all common code, getArchivedCoursesById() has been
-     * condensed into this function.  Set param $unarchived to false to
-     * retrieve archived courses.
+     * (WHERE u.user_id=? AND c.status=1) checks if a course is active (unarchived).
+     * (WHERE u.user_id=? AND c.status=2 AND u.user_group=1) checks if $user_id
+     * is an instructor and course is inactive (archived).  Instructors may
+     * access all of their courses.  Inactive courses may only be accessed by
+     * the instructor.  Active courses may be accessed by all users.  Due to
+     * almost all common code, getArchivedCoursesById() has been condensed into
+     * this function.
      *
      * @param string $user_id
-     * @param string $unarchived
-     * @return array - unarchived courses (and their details) accessible by $user_id
+     * @param string $unarchived set to false to retrieve archived courses.
+     * @return array - (un)archived courses (and their details) accessible by $user_id
      */
     public function getUnarchivedCoursesById($user_id, $unarchived = true) {
-        $course_status = ($unarchived) ?
+        $course_status = $unarchived ?
             "WHERE u.user_id=? AND c.status=1" :
             "WHERE u.user_id=? AND c.status=2 AND u.user_group=1";
 
@@ -2431,7 +2432,7 @@ INNER JOIN courses c ON u.course=c.course AND u.semester=c.semester
 INNER JOIN terms t ON u.semester=t.term_id
 {$course_status}
 ORDER BY t.end_date DESC, u.user_group ASC,
-         CASE WHEN SUBSTRING(u.semester, 2, 2) ~ '\\d+' THEN SUBSTRING(u.semester, 2, 2)::INT
+         CASE WHEN SUBSTRING(u.semester, 2, 2) ~ '\\d{2}' THEN SUBSTRING(u.semester, 2, 2)::INT
               ELSE 0
          END DESC,
          CASE WHEN SUBSTRING(u.semester, 1, 1) = 's' THEN 2
@@ -2444,17 +2445,14 @@ ORDER BY t.end_date DESC, u.user_group ASC,
         foreach ($this->submitty_db->rows() as $row) {
             $course = new Course($this->core, $row);
             $course->loadDisplayName();
-            $return[$row['name']][] = $course;
+            $return[$row['semester']]['name'] = $row['name'];
+            $return[$row['semester']]['courses'][] = $course;
         }
         return $return;
     }
 
     /**
      * Retrieves all archived courses (and details) that are accessible by $user_id
-     *
-     * (WHERE u.user_id=? AND c.status=2 AND u.user_group=1) checks if $user_id
-     * is an instructor and course is inactive.  Instructors may access all of
-     * their courses.  Inactive courses may only be accessed by the instructor.
      *
      * Due to almost all common code, this function has been condensed into
      * getUnarchivedCoursesById().
